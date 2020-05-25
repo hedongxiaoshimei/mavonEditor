@@ -269,7 +269,7 @@ export const getNavigation = ($vm , full) => {
             node.onclick = function () {
                 let vShowContent = $vm.$refs.vShowContent;
                 let vNoteEdit = $vm.$refs.vNoteEdit;
-                if ($vm.s_subfield) {
+                if ($vm.s_subfield && !$vm.isRender) {
                     // 双栏
                     if ($vm.s_preview_switch) {
                         // 编辑预览
@@ -278,6 +278,7 @@ export const getNavigation = ($vm , full) => {
                         // todo 编辑
                     }
                 } else {
+                  console.log("======>",vShowContent.children[i].offsetTop)
                     // 单栏
                     if ($vm.s_preview_switch) {
                         // 预览

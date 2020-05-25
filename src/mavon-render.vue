@@ -4,86 +4,11 @@
     class="v-note-wrapper markdown-body"
     :style="{ 'box-shadow': boxShadow ? boxShadowStyle : '' }"
   >
-    <!--工具栏-->
-    <div
-      class="v-note-op"
-      v-show="toolbarsFlag"
-      :style="{ background: toolbarsBackground }"
-    >
-      <v-md-toolbar-left
-        ref="toolbar_left"
-        :editable="editable"
-        :transition="transition"
-        :d_words="d_words"
-        @toolbar_left_click="toolbar_left_click"
-        @toolbar_left_addlink="toolbar_left_addlink"
-        :toolbars="toolbars"
-        @imgAdd="$imgAdd"
-        @imgDel="$imgDel"
-        @imgTouch="$imgTouch"
-        :image_filter="imageFilter"
-        :class="{ transition: transition }"
-      >
-        <slot name="left-toolbar-before" slot="left-toolbar-before" />
-        <slot name="left-toolbar-after" slot="left-toolbar-after" />
-      </v-md-toolbar-left>
-      <v-md-toolbar-right
-        ref="toolbar_right"
-        :d_words="d_words"
-        @toolbar_right_click="toolbar_right_click"
-        :toolbars="toolbars"
-        :s_subfield="s_subfield"
-        :s_preview_switch="s_preview_switch"
-        :s_fullScreen="s_fullScreen"
-        :s_html_code="s_html_code"
-        :s_navigation="s_navigation"
-        :class="{ transition: transition }"
-      >
-        <slot name="right-toolbar-before" slot="right-toolbar-before" />
-        <slot name="right-toolbar-after" slot="right-toolbar-after" />
-      </v-md-toolbar-right>
-    </div>
     <!--编辑展示区域-->
     <div class="v-note-panel">
-      <!--编辑区-->
-      <div
-        ref="vNoteEdit"
-        @scroll="$v_edit_scroll"
-        class="v-note-edit divarea-wrapper"
-        :class="{
-          'scroll-style': s_scrollStyle,
-          'scroll-style-border-radius':
-            s_scrollStyle && !s_preview_switch && !s_html_code,
-          'single-edit': !s_preview_switch && !s_html_code,
-          'single-show':
-            (!s_subfield && s_preview_switch) || (!s_subfield && s_html_code),
-          transition: transition,
-        }"
-        @click="textAreaFocus"
-      >
-        <div
-          class="content-input-wrapper"
-          :style="{ 'background-color': editorBackground }"
-        >
-          <!-- 双栏 -->
-          <v-autoTextarea
-            ref="vNoteTextarea"
-            :placeholder="placeholder ? placeholder : d_words.start_editor"
-            class="content-input"
-            :fontSize="fontSize"
-            lineHeight="1.5"
-            v-model="d_value"
-            fullHeight
-            :style="{ 'background-color': editorBackground }"
-          ></v-autoTextarea>
-        </div>
-      </div>
       <!--展示区-->
       <div
-        :class="{
-          'single-show':
-            (!s_subfield && s_preview_switch) || (!s_subfield && s_html_code),
-        }"
+        :class="'single-show'"
         v-show="s_preview_switch || s_html_code"
         class="v-note-show"
       >
@@ -110,29 +35,6 @@
           {{ d_render }}
         </div>
       </div>
-
-      <!--标题导航-->
-      <transition name="slideTop">
-        <div
-          v-show="s_navigation"
-          class="v-note-navigation-wrapper"
-          :class="{ transition: transition }"
-        >
-          <div class="v-note-navigation-title">
-            {{ d_words.navigation_title
-            }}<i
-              @click="toolbar_right_click('navigation')"
-              class="fa fa-mavon-times v-note-navigation-close"
-              aria-hidden="true"
-            ></i>
-          </div>
-          <div
-            ref="navigationContent"
-            class="v-note-navigation-content"
-            :class="{ 'scroll-style': s_scrollStyle }"
-          ></div>
-        </div>
-      </transition>
     </div>
     <!--帮助文档-->
     <transition name="fade">
@@ -157,15 +59,7 @@
       </div>
     </transition>
     <!-- 预览图片 -->
-    <transition name="fade">
-      <div
-        @click="d_preview_imgsrc = null"
-        class="v-note-img-wrapper"
-        v-if="d_preview_imgsrc"
-      >
-        <img :src="d_preview_imgsrc" alt="none" />
-      </div>
-    </transition>
+
     <!--阅读模式-->
     <div
       :class="{ show: s_readmodel }"
@@ -270,8 +164,8 @@ export default {
       type: String,
       default: null,
     },
-    value: {
-      // 初始 value
+    content: {
+      // 初始 content
       type: String,
       default: "",
     },
@@ -306,7 +200,15 @@ export default {
       // 工具栏
       type: Object,
       default() {
-        return CONFIG.toolbars;
+        return {
+          // navigation: true,
+          // subfield: true,
+          // fullscreen: true,
+          // readmodel: true,
+          // htmlcode: true,
+          // help: true,
+          // preview: true,
+        };
       },
     },
     xssOptions: {
@@ -371,13 +273,7 @@ export default {
       })(), // props 是否渲染滚动条样式
       d_value: "", // props 文本内容
       d_render: "", // props 文本内容render
-      s_preview_switch: (() => {
-        let default_open_ = this.defaultOpen;
-        if (!default_open_) {
-          default_open_ = this.subfield ? "preview" : "edit";
-        }
-        return default_open_ === "preview" ? true : false;
-      })(), // props true 展示编辑 false展示预览
+      s_preview_switch: true, // props true 展示编辑 false展示预览
       s_fullScreen: false, // 全屏编辑标志
       s_help: false, // markdown帮助
       s_html_code: false, // 分栏情况下查看html
@@ -388,7 +284,7 @@ export default {
       s_table_enter: false, // 回车事件是否在表格中执行
       d_history: (() => {
         let temp_array = [];
-        temp_array.push(this.value);
+        temp_array.push(this.content);
         return temp_array;
       })(), // 编辑记录
       d_history_index: 0, // 编辑记录索引
@@ -429,6 +325,7 @@ export default {
       p_external_link: {},
       textarea_selectionEnd: 0,
       textarea_selectionEnds: [0],
+      isRender: true,
     };
   },
   created() {
@@ -436,19 +333,15 @@ export default {
     // 初始化语言
     this.initLanguage();
     this.initExternalFuc();
-    this.$nextTick(() => {
-      // 初始化Textarea编辑开关
-      $vm.editableTextarea();
-    });
+    // this.$nextTick(() => {
+    //   // 初始化Textarea编辑开关
+    //   $vm.editableTextarea();
+    // });
   },
   mounted() {
+    console.log("=======>", this.content);
+
     var $vm = this;
-    this.$el.addEventListener("paste", function (e) {
-      $vm.$paste(e);
-    });
-    this.$el.addEventListener("drop", function (e) {
-      $vm.$drag(e);
-    });
     // 浏览器siz大小
     /* windowResize(this); */
     keydownListen(this);
@@ -456,11 +349,11 @@ export default {
     ImagePreviewListener(this);
     // 设置默认焦点
     if (this.autofocus) {
-      this.getTextareaDom().focus();
+      // this.getTextareaDom().focus();
     }
     // fullscreen事件
     fullscreenchange(this);
-    this.d_value = this.value;
+    this.d_value = this.content;
     // 将help添加到末尾
     document.body.appendChild(this.$refs.help);
     this.loadExternalLink("markdown_css", "css");
@@ -542,117 +435,7 @@ export default {
     textAreaFocus() {
       this.$refs.vNoteTextarea.$refs.vTextarea.focus();
     },
-    $drag($e) {
-      var dataTransfer = $e.dataTransfer;
-      if (dataTransfer) {
-        var files = dataTransfer.files;
-        if (files.length > 0) {
-          $e.preventDefault();
-          this.$refs.toolbar_left.$imgFilesAdd(files);
-        }
-      }
-    },
-    $paste($e) {
-      var clipboardData = $e.clipboardData;
-      if (clipboardData) {
-        var items = clipboardData.items;
-        if (!items) return;
-        var types = clipboardData.types || [];
-        var item = null;
-        for (var i = 0; i < types.length; i++) {
-          if (types[i] === "Files") {
-            item = items[i];
-            break;
-          }
-        }
-        if (item && item.kind === "file") {
-          // prevent filename being pasted parallel along
-          // with the image pasting process
-          stopEvent($e);
-          var oFile = item.getAsFile();
-          this.$refs.toolbar_left.$imgFilesAdd([oFile]);
-        }
-      }
-    },
-    $imgTouch(file) {
-      var $vm = this;
-      // TODO 跳转到图片位置
-    },
-    $imgDel(file) {
-      this.markdownIt.image_del(file[1]);
-      // 删除所有markdown中的图片
-      let fileReg = file[0];
-      let reg = new RegExp(`\\!\\[${file[1]._name}\\]\\(${fileReg}\\)`, "g");
 
-      this.d_value = this.d_value.replace(reg, "");
-      this.iRender();
-      this.$emit("imgDel", file);
-    },
-    $imgAdd(pos, $file, isinsert) {
-      if (isinsert === undefined) isinsert = true;
-      var $vm = this;
-      if (this.__rFilter == null) {
-        // this.__rFilter = /^(?:image\/bmp|image\/cis\-cod|image\/gif|image\/ief|image\/jpeg|image\/jpeg|image\/jpeg|image\/pipeg|image\/png|image\/svg\+xml|image\/tiff|image\/x\-cmu\-raster|image\/x\-cmx|image\/x\-icon|image\/x\-portable\-anymap|image\/x\-portable\-bitmap|image\/x\-portable\-graymap|image\/x\-portable\-pixmap|image\/x\-rgb|image\/x\-xbitmap|image\/x\-xpixmap|image\/x\-xwindowdump)$/i;
-        this.__rFilter = /^image\//i;
-      }
-      this.__oFReader = new FileReader();
-      this.__oFReader.onload = function (oFREvent) {
-        $vm.markdownIt.image_add(pos, oFREvent.target.result);
-        $file.miniurl = oFREvent.target.result;
-        if (isinsert === true) {
-          // 去除特殊字符
-          $file._name = $file.name.replace(
-            /[\[\]\(\)\+\{\}&\|\\\*^%$#@\-]/g,
-            ""
-          );
-
-          $vm.insertText($vm.getTextareaDom(), {
-            prefix: "![" + $file._name + "](" + pos + ")",
-            subfix: "",
-            str: "",
-          });
-          $vm.$nextTick(function () {
-            $vm.$emit("imgAdd", pos, $file);
-          });
-        }
-      };
-      if ($file) {
-        var oFile = $file;
-        if (this.__rFilter.test(oFile.type)) {
-          this.__oFReader.readAsDataURL(oFile);
-        }
-      }
-    },
-    $imgUpdateByUrl(pos, url) {
-      var $vm = this;
-      this.markdownIt.image_add(pos, url);
-      this.$nextTick(function () {
-        $vm.d_render = this.markdownIt.render(this.d_value);
-      });
-    },
-    $imgAddByUrl(pos, url) {
-      if (this.$refs.toolbar_left.$imgAddByUrl(pos, url)) {
-        this.$imgUpdateByUrl(pos, url);
-        return true;
-      }
-      return false;
-    },
-    $img2Url(fileIndex, url) {
-      // x.replace(/(\[[^\[]*?\](?=\())\(\s*(\.\/2)\s*\)/g, "$1(http://path/to/png.png)")
-      var reg_str =
-        "/(!\\[\[^\\[\]*?\\]\(?=\\(\)\)\\(\\s*\(" + fileIndex + "\)\\s*\\)/g";
-      var reg = eval(reg_str);
-      this.d_value = this.d_value.replace(reg, "$1(" + url + ")");
-      this.$refs.toolbar_left.$changeUrl(fileIndex, url);
-      this.iRender();
-    },
-    $imglst2Url(imglst) {
-      if (imglst instanceof Array) {
-        for (var i = 0; i < imglst.length; i++) {
-          this.$img2Url(imglst[i][0], imglst[i][1]);
-        }
-      }
-    },
     toolbar_left_click(_type) {
       toolbar_left_click(_type, this);
     },
@@ -718,7 +501,9 @@ export default {
     },
     // 获取textarea dom节点
     getTextareaDom() {
-      return this.$refs.vNoteTextarea.$refs.vTextarea;
+      return (
+        this.$refs.vNoteTextarea && this.$refs.vNoteTextarea.$refs.vTextarea
+      );
     },
     // 工具栏插入内容
     insertText(obj, { prefix, subfix, str, type }) {
@@ -771,15 +556,7 @@ export default {
       });
       this.d_words = CONFIG[`words_${lang}`];
     },
-    // 编辑开关
-    editableTextarea() {
-      let text_dom = this.$refs.vNoteTextarea.$refs.vTextarea;
-      if (this.editable) {
-        text_dom.removeAttribute("disabled");
-      } else {
-        text_dom.setAttribute("disabled", "disabled");
-      }
-    },
+
     codeStyleChange(val, isInit) {
       isInit = isInit ? isInit : false;
       if (typeof this.p_external_link.hljs_css !== "function") {
@@ -841,7 +618,7 @@ export default {
       this.saveSelectionEndsHistory();
       this.iRender();
     },
-    value: function (val, oldVal) {
+    content: function (val, oldVal) {
       // Escaping all XSS characters
       //         escapeHtml (html) {
       //             return html
