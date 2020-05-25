@@ -81,7 +81,6 @@ import { autoTextarea } from "auto-textarea";
 import { keydownListen } from "./lib/core/keydown-listen.js";
 import hljsCss from "./lib/core/hljs/lang.hljs.css.js";
 import hljsLangs from "./lib/core/hljs/lang.hljs.js";
-const xss = require("xss");
 import {
   fullscreenchange,
   /* windowResize, */
@@ -339,8 +338,7 @@ export default {
     // });
   },
   mounted() {
-    console.log("=======>", this.content);
-
+    console.log("=======> render-mounted");
     var $vm = this;
     // 浏览器siz大小
     /* windowResize(this); */
@@ -353,7 +351,7 @@ export default {
     }
     // fullscreen事件
     fullscreenchange(this);
-    this.d_value = this.content;
+    this.d_value = this.content || '';
     // 将help添加到末尾
     document.body.appendChild(this.$refs.help);
     this.loadExternalLink("markdown_css", "css");
